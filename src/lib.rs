@@ -1,4 +1,6 @@
+pub mod cli;
+mod common;
 pub mod config;
 pub mod core;
-mod errors;
-pub mod cli;
+pub mod errors;
+pub mod server;

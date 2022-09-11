@@ -23,6 +23,7 @@ clap = { version = "3.1.17", features = ["derive"] }
 rust_decimal = "1.26.1"
 ethers = { version = "0.17.0", features = ["ws", "rustls"] }
 futures = "0.3.24"
+axum = "0.5.16"
 
 # sui = {path="../sui/crates/sui"}
 # sui-config = {path="../sui/crates/sui-config"}

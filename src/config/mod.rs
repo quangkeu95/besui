@@ -6,9 +6,16 @@ use serde::Deserialize;
 use std::{env, sync::Arc};
 use tracing::info;
 
+#[derive(Debug, Deserialize)]
+pub struct HttpServer {
+    pub port: usize,
+}
+
 #[derive(Debug, Deserialize, Getters)]
 #[allow(unused)]
-pub struct AppConfig {}
+pub struct AppConfig {
+    pub http_server: HttpServer,
+}
 
 impl AppConfig {
     pub fn new() -> Result<Self, ConfigError> {
