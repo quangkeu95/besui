@@ -2,4 +2,4 @@
 
 /src/config/local.toml
 
-.env*
+.env
