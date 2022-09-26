@@ -1,2 +1,11 @@
 [http_server]
 port = 8080
+
+[[chains]]
+chain_id = 1
+# rpc_url = "https://rpc.ankr.com/eth"
+rpc_url = ["https://mainnet.infura.io/v3/5e95a0d24c4548f5bc89ee9dc2930380", "https://eth-mainnet.nodereal.io/v1/1659dfb40aa24bbb8153a677b98064d7"]
+
+[[chains]]
+chain_id = 3
+rpc_url = ["https://rpc.ankr.com/eth_ropsten"]

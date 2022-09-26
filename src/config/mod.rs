@@ -11,10 +11,17 @@ pub struct HttpServer {
     pub port: usize,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ChainConfig {
+    pub chain_id: u64,
+    pub rpc_url: Vec<String>,
+}
+
 #[derive(Debug, Deserialize, Getters)]
 #[allow(unused)]
 pub struct AppConfig {
     pub http_server: HttpServer,
+    pub chains: Vec<ChainConfig>,
 }
 
 impl AppConfig {
