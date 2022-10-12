@@ -1,8 +1,10 @@
 use crate::common::{chain::Chain, provider::ProviderController, types::HttpProvider};
+use crate::config::get_global_config;
+use crate::errors::Error;
 use anyhow::Result;
 use ethers::prelude::*;
-use futures::Future;
-use tracing::info;
+use tokio::sync::broadcast::Sender;
+use tracing::{debug, error};
 
 pub mod types;
 
@@ -31,10 +33,11 @@ fn wrapper_load_provider(
     chain: Chain,
     custom_provider: Option<HttpProvider>,
 ) -> Result<HttpProvider> {
+    let config = get_global_config();
     let provider = match custom_provider {
         Some(p) => p,
         None => {
-            let mut provider_controller = ProviderController::new(chain)?;
+            let mut provider_controller = ProviderController::new(chain, config.chains.clone())?;
             let provider = provider_controller.next_http_provider()?;
             provider
         }
@@ -42,18 +45,14 @@ fn wrapper_load_provider(
     Ok(provider)
 }
 
-pub async fn wrapper_get_events<F, Fut>(
+pub async fn wrapper_get_events(
     from_block: u64,
     to_block: u64,
     filter: Filter,
     chain: Chain,
+    sender: Sender<Vec<Log>>,
     custom_provider: Option<HttpProvider>,
-    mut handler: F,
-) -> Result<()>
-where
-    F: FnMut(Vec<Log>) -> Fut,
-    Fut: Future<Output = ()>,
-{
+) -> Result<()> {
     let mut start_block = from_block;
 
     let provider = wrapper_load_provider(chain, custom_provider)?;
@@ -65,23 +64,25 @@ where
         if next_block > to_block {
             next_block = to_block;
         }
-        println!("start_block: {:?} end_block: {:?}", start_block, next_block);
 
         let internal_filter = filter.clone().from_block(start_block).to_block(next_block);
         let logs = match provider.get_logs(&internal_filter).await {
             Ok(logs) => logs,
             Err(err) => {
-                println!("error: {:?}", err);
+                debug!("error: {:?}", err);
                 return Err(err.into());
             }
         };
+        if logs.len() > 0 {
+            match sender.send(logs) {
+                Ok(_) => (),
+                Err(error) => {
+                    error!("receiver dropped error {:?}", error);
+                    return Err(Error::ReceiverDroppedError.into());
+                }
+            }
+        }
 
-        println!("logs length: {:?}", logs.len());
-        // logs.iter().for_each(|log| {
-        //     println!("{:?}", log);
-        // });
-
-        // handler(logs).await;
         start_block = next_block + 1;
     }
 
@@ -95,7 +96,9 @@ mod test_fetcher {
     use anyhow::Result;
     use ethers::prelude::*;
     use ethers::utils::keccak256;
-    use std::str::FromStr;
+    use test_log::test;
+    use tokio::sync::broadcast::{self, error::RecvError};
+    use tracing::info;
 
     #[tokio::test]
     async fn test_get_latest_block() {
@@ -117,7 +120,7 @@ mod test_fetcher {
         assert!(block.number.is_some());
     }
 
-    #[tokio::test]
+    #[test(tokio::test)]
     async fn test_wrapper_get_events() -> Result<()> {
         let from_block: u64 = 13332265;
         let to_block: u64 = 13352265;
@@ -128,18 +131,23 @@ mod test_fetcher {
         let filter: Filter = Filter::new()
             .topic0(ValueOrArray::Value(H256::from(keccak256(TRANSFER_TOPIC))))
             .topic1(ValueOrArray::Value(H256::from(from_address)));
-        let handler = |arr_logs: Vec<Log>| async move {
-            arr_logs.iter().for_each(|log| {
-                println!("{:?}", log);
-            });
-        };
 
-        // let provider = get_default_provider(chain)?;
-        // let logs = provider.get_logs(&filter).await?;
-        // println!("{:?}", logs);
+        let (tx, mut rx) = broadcast::channel(20);
+        tokio::spawn(async move {
+            let _ = wrapper_get_events(from_block, to_block, filter, chain, tx, None).await;
+        });
 
-        // assert!(!logs.is_empty());
-        let _ = wrapper_get_events(from_block, to_block, filter, chain, None, handler).await;
+        loop {
+            match rx.recv().await {
+                Ok(logs) => info!("logs: {:?}", logs),
+                Err(error) => {
+                    if error == RecvError::Closed {
+                        info!("channel closed");
+                        break;
+                    }
+                }
+            }
+        }
         Ok(())
     }
 }

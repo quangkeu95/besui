@@ -11,6 +11,8 @@ pub enum Error {
     NoDefaultProvider(u64),
     #[error("provider not found")]
     ProviderNotFound,
+    #[error("receiver dropped error")]
+    ReceiverDroppedError,
     #[error(transparent)]
     Other(#[from] anyhow::Error),
 }

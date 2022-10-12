@@ -1,3 +1,7 @@
+//! Onchain automation triggers and workflows
+//!
+//! Provide an easy way to set alerts and trigger actions on onchain events.
+
 pub mod cli;
 mod common;
 pub mod config;

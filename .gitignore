@@ -3,3 +3,4 @@
 /src/config/local.toml
 
 .env*
+.DS_Store

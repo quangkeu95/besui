@@ -1,10 +1,26 @@
 use std::sync::Arc;
 
 use super::{chain::Chain, types::HttpProvider};
-use crate::{config::get_global_config, errors::Error};
+use crate::{
+    config::{get_global_config, ChainConfig},
+    errors::Error,
+};
 use anyhow::Result;
 use ethers::prelude::*;
 
+/// Provides map of (EVM) node providers for a specific chain.
+///
+/// Chain configuration contains a list of chains with rpc node urls. The ProviderController takes one of those chain configurations and create a convinience way to initialize an rpc HttpProvider.
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```ignore
+///
+/// let chain = Chain::Mainnet;
+/// let provider = ProviderController::new(chain);
+/// ```
 #[derive(Debug)]
 pub struct ProviderController {
     rpc_urls: Vec<String>,
@@ -12,10 +28,9 @@ pub struct ProviderController {
 }
 
 impl ProviderController {
-    pub fn new(chain: Chain) -> Result<ProviderController> {
-        let config = get_global_config();
+    pub fn new(chain: Chain, chains_config: Vec<ChainConfig>) -> Result<ProviderController> {
         let chain_id: u64 = chain.into();
-        let list_rpc_url: Option<Vec<String>> = config.chains.iter().find_map(|chain_config| {
+        let list_rpc_url: Option<Vec<String>> = chains_config.iter().find_map(|chain_config| {
             if chain_config.chain_id == chain_id {
                 if chain_config.rpc_url.len() == 0 {
                     return None;
@@ -81,18 +96,18 @@ mod test_provider_controller {
     use ethers::providers::Middleware;
 
     use super::ProviderController;
-    use crate::{common::chain::Chain, errors::Error};
+    use crate::{common::chain::Chain, config::get_global_config, errors::Error};
     use anyhow::Result;
-    use ethers::prelude::*;
 
     #[test]
     fn test_new_provider_controller() {
         let chain = Chain::Mainnet;
-        let provider_controller = ProviderController::new(chain);
+        let config = get_global_config();
+        let provider_controller = ProviderController::new(chain, config.chains.clone());
         assert!(provider_controller.is_ok());
 
         let chain: Chain = Chain::Kava;
-        let provider_controller = ProviderController::new(chain);
+        let provider_controller = ProviderController::new(chain, config.chains.clone());
         assert_eq!(provider_controller.is_err(), true);
         let err = provider_controller.unwrap_err();
         let chain_id: u64 = chain.into();
@@ -103,7 +118,8 @@ mod test_provider_controller {
     #[tokio::test]
     async fn test_next_http_provider() -> Result<()> {
         let chain = Chain::Mainnet;
-        let provider_controller = ProviderController::new(chain);
+        let config = get_global_config();
+        let provider_controller = ProviderController::new(chain, config.chains.clone());
         assert!(provider_controller.is_ok());
 
         let mut provider_controller = provider_controller.unwrap();

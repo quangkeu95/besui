@@ -11,7 +11,7 @@ pub struct HttpServer {
     pub port: usize,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ChainConfig {
     pub chain_id: u64,
     pub rpc_url: Vec<String>,
