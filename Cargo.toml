@@ -26,6 +26,8 @@ futures = "0.3.24"
 axum = "0.5.16"
 num_enum = "0.5.7"
 test-log = "0.2.11"
+coingecko = "1.0.1"
+prettytable-rs = "^0.9"
 
 [dev-dependencies]
 env_logger = "*"

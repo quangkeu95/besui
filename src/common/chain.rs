@@ -1,9 +1,7 @@
-use crate::{config::get_global_config, errors::Error};
+use crate::errors::Error;
 use anyhow::Result;
 use ethers::prelude::*;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
-
-use super::types::HttpProvider;
 
 #[derive(IntoPrimitive, TryFromPrimitive, PartialEq, Debug, Clone, Copy)]
 #[repr(u64)]
@@ -30,26 +28,6 @@ pub fn get_chain(chain_id: u64) -> Result<Chain> {
         Err(_) => Err(Error::ChainNotSupported(chain_id).into()),
     }
 }
-
-// pub fn get_default_provider(chain: Chain) -> Result<HttpProvider> {
-//     let config = get_global_config();
-//     let chain_id: u64 = chain.into();
-//     let provider: Option<HttpProvider> = config.chains.iter().find_map(|chain_config| {
-//         if chain_config.chain_id == chain_id {
-//             let provider = match Provider::<Http>::try_from(chain_config.rpc_url.clone()) {
-//                 Ok(provider) => Some(provider),
-//                 Err(_) => None,
-//             };
-//             return provider;
-//         }
-//         return None;
-//     });
-
-//     if let Some(provider) = provider {
-//         return Ok(provider);
-//     }
-//     return Err(Error::NoDefaultProvider(chain_id).into());
-// }
 
 #[cfg(test)]
 mod test_chain_common {
@@ -79,19 +57,4 @@ mod test_chain_common {
 
         assert_eq!(err.to_string(), expected_err.to_string());
     }
-
-    // #[test]
-    // fn test_get_default_provider() {
-    //     let chain: Chain = Chain::Mainnet;
-    //     let provider = get_default_provider(chain);
-    //     assert_eq!(provider.is_ok(), true);
-
-    //     let chain: Chain = Chain::Kava;
-    //     let provider = get_default_provider(chain);
-    //     assert_eq!(provider.is_err(), true);
-    //     let err = provider.unwrap_err();
-    //     let chain_id: u64 = chain.into();
-    //     let expected_err = Error::NoDefaultProvider(chain_id);
-    //     assert_eq!(err.to_string(), expected_err.to_string());
-    // }
 }

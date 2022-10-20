@@ -9,3 +9,6 @@ rpc_url = ["https://mainnet.infura.io/v3/5e95a0d24c4548f5bc89ee9dc2930380", "htt
 [[chains]]
 chain_id = 3
 rpc_url = ["https://rpc.ankr.com/eth_ropsten"]
+
+[coingecko]
+url = "https://api.coingecko.com/api/v3"
