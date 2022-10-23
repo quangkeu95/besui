@@ -1,0 +1,12 @@
+[package]
+name = "besui-api"
+version = "0.1.0"
+edition = "2021"
+license-file = "../../LICENSE"
+
+[dependencies]
+besui-types = { path = "../besui-types"}
+tokio = { version = "1.20.1", features = ["full"] }
+tracing = "0.1.36"
+anyhow = "1.0.61"
+axum = "0.5.16"

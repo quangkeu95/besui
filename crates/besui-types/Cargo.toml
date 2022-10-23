@@ -1,0 +1,11 @@
+
+[package]
+name = "besui-types"
+version = "0.1.0"
+edition = "2021"
+license-file = "../../LICENSE"
+
+[dependencies]
+serde = { version = "1.0.144", features = ["derive"] }
+validator = { version = "0.16.0", features = ["derive"] }
+lazy_static = "1.4.0"

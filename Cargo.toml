@@ -3,10 +3,20 @@ name = "besui"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = [".", 
+          "crates/besui-api", 
+          "crates/besui-types", 
+          "crates/besui-core", 
+          "crates/besui-config",
+          "crates/besui-cli",
+          "entity", 
+          "migration"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dotenv = "0.15.0"
+entity = { path = "entity" }
 tokio = { version = "1.20.1", features = ["full"] }
 async-trait = "0.1.57"
 # sui-sdk = { git = "https://github.com/MystenLabs/sui", branch = "devnet" }
@@ -28,6 +38,8 @@ num_enum = "0.5.7"
 test-log = "0.2.11"
 coingecko = "1.0.1"
 prettytable-rs = "^0.9"
+sea-orm = { version = "^0.9.0", features = [ "sqlx-postgres", "runtime-tokio-native-tls", "macros" ] }
+dotenvy = "0.15.6"
 
 [dev-dependencies]
 env_logger = "*"

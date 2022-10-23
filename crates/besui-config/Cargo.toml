@@ -1,0 +1,11 @@
+[package]
+name = "besui-config"
+version = "0.1.0"
+edition = "2021"
+license-file = "../../LICENSE"
+
+[dependencies]
+dotenvy = "0.15.6"
+config = "0.13.2"
+anyhow = "1.0.61"
+tracing = "0.1.36"
