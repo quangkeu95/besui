@@ -422,7 +422,7 @@ dependencies = [
  "num_enum",
  "prettytable-rs",
  "rust_decimal",
- "sea-orm",
+ "sea-orm 0.9.3",
  "serde",
  "test-log",
  "thiserror",
@@ -437,14 +437,27 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
+ "besui-core",
  "besui-types",
  "tokio",
+ "tower-http",
  "tracing",
 ]
 
 [[package]]
 name = "besui-cli"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "besui-api",
+ "besui-config",
+ "besui-core",
+ "clap 4.0.11",
+ "dotenvy",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "besui-config"
@@ -453,6 +466,8 @@ dependencies = [
  "anyhow",
  "config",
  "dotenvy",
+ "lazy_static",
+ "serde",
  "tracing",
 ]
 
@@ -461,7 +476,14 @@ name = "besui-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
+ "auto_impl",
  "besui-types",
+ "derive_more",
+ "getset",
+ "sea-orm 0.10.1",
+ "serde",
+ "thiserror",
  "tokio",
  "tracing",
 ]
@@ -975,6 +997,12 @@ checksum = "245097e9a4535ee1e3e3931fcfcd55a796a44c643e8596ff6566d68f09b87bbc"
 
 [[package]]
 name = "convert_case"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
+
+[[package]]
+name = "convert_case"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fb4a24b1aaf0fd0ce8b45161144d6f42cd91677fd5940fd431183eb023b3a2b8"
@@ -1273,6 +1301,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "derive_more"
+version = "0.99.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fb810d30a7c1953f91334de7244731fc3f3c10d7fe163338a35b9f640960321"
+dependencies = [
+ "convert_case 0.4.0",
+ "proc-macro2",
+ "quote",
+ "rustc_version",
+ "syn",
+]
+
+[[package]]
 name = "dialoguer"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1456,7 +1497,7 @@ dependencies = [
 name = "entity"
 version = "0.1.0"
 dependencies = [
- "sea-orm",
+ "sea-orm 0.9.3",
  "serde",
 ]
 
@@ -1618,7 +1659,7 @@ dependencies = [
  "bytes",
  "cargo_metadata",
  "chrono",
- "convert_case",
+ "convert_case 0.5.0",
  "elliptic-curve",
  "ethabi",
  "fastrlp",
@@ -3753,12 +3794,41 @@ dependencies = [
  "once_cell",
  "ouroboros",
  "rust_decimal",
- "sea-orm-macros",
- "sea-query",
+ "sea-orm-macros 0.9.3",
+ "sea-query 0.26.4",
  "sea-strum",
  "serde",
  "serde_json",
  "sqlx",
+ "time 0.3.14",
+ "tracing",
+ "url",
+ "uuid 1.2.1",
+]
+
+[[package]]
+name = "sea-orm"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c347aacd6bd1b9714fd8b5a6095b7caf4c7d6d3d2fc443c5668512effc52755d"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "chrono",
+ "futures",
+ "futures-util",
+ "log",
+ "once_cell",
+ "ouroboros",
+ "rust_decimal",
+ "sea-orm-macros 0.10.1",
+ "sea-query 0.27.1",
+ "sea-query-binder",
+ "sea-strum",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror",
  "time 0.3.14",
  "tracing",
  "url",
@@ -3796,6 +3866,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "sea-orm-macros"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51235dc3e7330b241a3ca2fcd00c315feffb3f9e3da193c18c01aca369be7ec7"
+dependencies = [
+ "bae",
+ "heck 0.3.3",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "sea-orm-migration"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3804,7 +3887,7 @@ dependencies = [
  "async-trait",
  "clap 3.2.2",
  "dotenv",
- "sea-orm",
+ "sea-orm 0.9.3",
  "sea-orm-cli",
  "sea-schema",
  "tracing",
@@ -3823,6 +3906,35 @@ dependencies = [
  "sea-query-derive",
  "sea-query-driver",
  "serde_json",
+ "time 0.3.14",
+ "uuid 1.2.1",
+]
+
+[[package]]
+name = "sea-query"
+version = "0.27.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3497a83851c4be4d1fdc8cbc7215105b828a2a944abb64dd2e0ba233f2ce187f"
+dependencies = [
+ "chrono",
+ "rust_decimal",
+ "sea-query-derive",
+ "serde_json",
+ "time 0.3.14",
+ "uuid 1.2.1",
+]
+
+[[package]]
+name = "sea-query-binder"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7dddc5c3889bbc63b7e3374d3a7494551eb801c45f2f9cb460bfa4921653563d"
+dependencies = [
+ "chrono",
+ "rust_decimal",
+ "sea-query 0.27.1",
+ "serde_json",
+ "sqlx",
  "time 0.3.14",
  "uuid 1.2.1",
 ]
@@ -3858,7 +3970,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f737a6819fcad9727207d7090ccd6a33c0b384f3794e8838f952b52d599e3a17"
 dependencies = [
  "futures",
- "sea-query",
+ "sea-query 0.26.4",
  "sea-schema-derive",
 ]
 
@@ -3950,9 +4062,9 @@ checksum = "930c0acf610d3fdb5e2ab6213019aaa04e227ebe9547b0649ba599b16d788bd7"
 
 [[package]]
 name = "serde"
-version = "1.0.144"
+version = "1.0.147"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f747710de3dcd43b88c9168773254e809d8ddbdf9653b84e2554ab219f17860"
+checksum = "d193d69bae983fc11a79df82342761dfbf28a99fc8d203dca4c3c1b590948965"
 dependencies = [
  "serde_derive",
 ]
@@ -3969,9 +4081,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.144"
+version = "1.0.147"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94ed3a816fb1d101812f83e789f888322c34e291f894f19590dc310963e87a00"
+checksum = "4f1d362ca8fc9c3e3a7484440752472d68a6caa98f1ab81d99b5dfe517cec852"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4496,6 +4608,7 @@ dependencies = [
  "itoa 1.0.3",
  "libc",
  "num_threads",
+ "serde",
  "time-macros",
 ]
 
@@ -4665,6 +4778,7 @@ dependencies = [
  "tower",
  "tower-layer",
  "tower-service",
+ "tracing",
 ]
 
 [[package]]

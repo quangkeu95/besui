@@ -3,3 +3,14 @@ name = "besui-cli"
 version = "0.1.0"
 edition = "2021"
 license-file = "../../LICENSE"
+
+[dependencies]
+besui-api = { path = "../besui-api" }
+besui-config = { path = "../besui-config" }
+besui-core = { path = "../besui-core" }
+tokio = { version = "1.20.1", features = ["full"] }
+tracing = "0.1.36"
+tracing-subscriber = { version = "0.3.15", features = ["env-filter"] }
+anyhow = "1.0.61"
+clap = { version = "4.0.11", features = ["derive"] }
+dotenvy = "0.15.6"
