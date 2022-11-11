@@ -5,7 +5,6 @@
 pub mod cli;
 mod common;
 pub mod config;
-pub mod core;
 pub mod database;
 pub mod errors;
 pub mod fetcher;

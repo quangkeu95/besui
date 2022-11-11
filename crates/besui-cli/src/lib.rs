@@ -31,11 +31,7 @@ impl Cli {
     pub async fn execute(self, config: Arc<AppConfig>) -> anyhow::Result<()> {
         match &self.command {
             Commands::Start {} => {
-                let db_conn = DbConnectionManager::new_connection(config.database.url.clone())
-                    .await
-                    .context("could not initialize db connection")?;
-
-                let mut core = BesuiCore::new(db_conn);
+                let mut core = BesuiCore::new(config.clone()).await?;
 
                 core.start().await.context("cannot start core")?;
 

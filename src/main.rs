@@ -6,9 +6,5 @@ use tracing::{error, info};
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    tracing_subscriber::fmt::init();
-
-    let cli = Cli::parse();
-
-    cli.execute().await
+    Ok(())
 }

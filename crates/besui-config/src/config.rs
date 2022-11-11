@@ -13,6 +13,13 @@ pub struct HttpServer {
 #[derive(Debug, Deserialize, Clone)]
 pub struct DatabaseConfig {
     pub url: String, // env
+    pub logging: DatabaseLogging,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct DatabaseLogging {
+    pub level: String, // env
+    pub enabled: bool, // env
 }
 
 #[derive(Debug, Deserialize, Clone)]

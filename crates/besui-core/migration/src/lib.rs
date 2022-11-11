@@ -1,6 +1,7 @@
 pub use sea_orm_migration::prelude::*;
 
 mod m20221021_190148_create_token_table;
+mod m20221108_140052_create_table_exchange;
 
 pub struct Migrator;
 
@@ -9,6 +10,7 @@ impl MigratorTrait for Migrator {
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
         vec![
             Box::new(m20221021_190148_create_token_table::Migration),
+            Box::new(m20221108_140052_create_table_exchange::Migration),
         ]
     }
 }

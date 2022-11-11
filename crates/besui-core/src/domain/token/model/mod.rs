@@ -1,4 +1,5 @@
 use crate::errors::Error;
+use chrono::{DateTime, Utc};
 use derive_more::{Display, Into};
 use getset::Setters;
 use serde::{Deserialize, Serialize};
@@ -83,10 +84,10 @@ impl<'a> TryFrom<&'a str> for TokenName {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TokenMarketData {
-    pub current_price: f64,
-    pub volume_24h: f64,
-    pub high_24h: f64,
-    pub low_24h: f64,
+    pub current_price: Option<f64>,
+    pub volume_24h: Option<f64>,
+    pub high_24h: Option<f64>,
+    pub low_24h: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Setters, PartialEq)]
@@ -94,6 +95,7 @@ pub struct Token {
     pub id: TokenId,
     pub symbol: TokenSymbol,
     pub name: TokenName,
+    pub last_updated: DateTime<Utc>,
     #[getset(set)]
     pub image: Option<String>,
     #[getset(set)]
@@ -112,6 +114,7 @@ impl Token {
             id: TokenId::try_from(id)?,
             symbol: TokenSymbol::try_from(symbol)?,
             name: TokenName::try_from(name)?,
+            last_updated: Utc::now(),
             image: None,
             circulating_supply: None,
             total_supply: None,
