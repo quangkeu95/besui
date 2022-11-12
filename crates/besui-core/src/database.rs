@@ -4,7 +4,6 @@ use crate::{
 };
 use anyhow::{bail, Context};
 use migration::{Migrator, MigratorTrait};
-use mockall::mock;
 use sea_orm::{ConnectOptions, Database, DatabaseBackend, DatabaseConnection};
 use std::{str::FromStr, sync::Arc, time::Duration};
 use tracing::log::{self, LevelFilter};

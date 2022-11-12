@@ -27,10 +27,12 @@ prettytable-rs = "^0.9"
 cached = "0.40.0"
 futures = "0.3.25"
 once_cell = "1.16.0"
-mockall = "0.11.1"
+tokio-retry = "0.3.0"
 
 [dev-dependencies]
 sea-orm = { version = "0.10.1", features = ["mock"] }
+mockall = "0.11.1"
+
 
 [features]
 db-mock = ["sea-orm/mock"]

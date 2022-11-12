@@ -11,20 +11,15 @@ pub struct MonitorResolver {
     exchange_monitor: Arc<ExchangeMonitor>,
 }
 
-impl Default for MonitorResolver {
-    fn default() -> Self {
-        // let root_resolver = RootResolver::get().unwrap();
-        // let db_conn = root_resolver.db_conn.clone();
-
+impl MonitorResolver {
+    pub fn new() -> Self {
         MonitorResolver {
             exchange_monitor: Arc::new(ExchangeMonitor::new()),
         }
     }
-}
 
-impl MonitorResolver {
     pub async fn start(&self) -> anyhow::Result<()> {
-        info!("starting monitor resolver...");
+        info!("Starting monitor resolver...");
         self.exchange_monitor.start().await
     }
 }

@@ -1,17 +1,21 @@
-use tracing::info;
+use tracing::{debug, error, info};
 
 use crate::{
     application::{fetcher::ExchangeFetcherService, store::Mutation},
+    database::DbConnection,
     domain::exchange::store::ExchangeStorage,
     resolver::RootResolver,
     services::exchange_fetcher::ExchangeFetcher,
     utils::coingecko::CoingeckoClient,
 };
 use std::sync::Arc;
+use tokio_retry::strategy::{jitter, ExponentialBackoff};
+use tokio_retry::Retry;
 
 pub struct ExchangeMonitor {
     exchange_fetcher: ExchangeFetcher,
     exchange_storage: ExchangeStorage,
+    db_conn: DbConnection,
 }
 
 impl ExchangeMonitor {
@@ -27,23 +31,48 @@ impl ExchangeMonitor {
         ExchangeMonitor {
             exchange_fetcher,
             exchange_storage,
+            db_conn,
         }
     }
 
     pub async fn start(&self) -> anyhow::Result<()> {
-        info!("starting exchange monitor...");
+        info!("Starting exchange monitor...");
+        const FETCH_LIST_EXCHANGE_RETRY_DURATION: u64 = 1000;
+        const FETCH_LIST_EXCHANGE_RETRY_LIMIT: usize = 3;
 
-        // let mut handles: Vec<tokio::task::JoinHandle<anyhow::Result<()>>> = vec![];
+        let fetch_list_exchanges_retry_strategy =
+            ExponentialBackoff::from_millis(FETCH_LIST_EXCHANGE_RETRY_DURATION)
+                .map(jitter) // add jitter to delays
+                .take(FETCH_LIST_EXCHANGE_RETRY_LIMIT);
 
-        // handles.push(tokio::spawn(async move {
-        //     let exchange_fetcher = self.exchange_fetcher.clone();
-        //     let exchanges = exchange_fetcher.get_list_exchanges().await?;
+        let fetch_list_exchanges_result =
+            Retry::spawn(fetch_list_exchanges_retry_strategy, move || async {
+                let _ = match self.fetch_and_save_list_exchanges().await {
+                    Ok(_) => Ok::<(), anyhow::Error>(()),
+                    Err(e) => {
+                        error!(
+                            "error fetch and save list exchanges: {:?}. Retrying again...",
+                            e
+                        );
+                        return Err(e);
+                    }
+                };
+                Ok(())
+            });
+        fetch_list_exchanges_result.await?;
 
-        //     Ok(())
-        // }));
+        Ok(())
+    }
 
-        // // futures::future::join_all(handles).await?;
+    async fn fetch_and_save_list_exchanges(&self) -> anyhow::Result<()> {
+        let fetcher = self.exchange_fetcher.clone();
+        let storage = self.exchange_storage.clone();
+        let db_conn = self.db_conn.clone();
 
+        let list_exchanges = fetcher.get_list_exchanges().await?;
+        debug!("List exchanges fetched: {}", list_exchanges.len());
+        let _ = storage.save_list_exchanges(db_conn, list_exchanges).await?;
+        debug!("List exchanges saved");
         Ok(())
     }
 }

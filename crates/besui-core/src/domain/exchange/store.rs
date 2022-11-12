@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 #[async_trait]
 pub trait ExchangeStore {
+    /** Save list exchanges, ignore if exchange item is existed. */
     async fn save_list_exchanges(
         &self,
         db_conn: DbConnection,

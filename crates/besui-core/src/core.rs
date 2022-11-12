@@ -1,3 +1,4 @@
+use crate::application::monitor::MonitorResolver;
 use crate::database::{DbConnection, DbConnectionManager};
 use crate::resolver::RootResolver;
 use crate::services::ServiceRegister;
@@ -13,6 +14,7 @@ use tracing::log::LevelFilter;
 pub struct BesuiCore {
     pub db_conn: DbConnection,
     pub service_register: ServiceRegister,
+    pub monitor_resolver: Arc<MonitorResolver>,
 }
 
 impl BesuiCore {
@@ -44,14 +46,17 @@ impl BesuiCore {
         })?;
 
         let service_register = ServiceRegister::new();
-        // let monitor_resolver = MonitorResolver::new(db)
+        let monitor_resolver = Arc::new(MonitorResolver::new());
         Ok(BesuiCore {
             db_conn,
             service_register,
+            monitor_resolver,
         })
     }
 
     pub async fn start(&mut self) -> anyhow::Result<()> {
+        let monitor_resolver = self.monitor_resolver.clone();
+        tokio::spawn(async move { monitor_resolver.start().await });
         Ok(())
     }
 }

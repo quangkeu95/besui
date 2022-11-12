@@ -5,41 +5,9 @@ use crate::{
 use ::entity::exchange;
 use async_trait::async_trait;
 use sea_orm::*;
+use tracing::{error, info};
 
 use super::Mutation;
-
-// #[derive(Clone)]
-// pub struct PostgresExchangeStorage {
-//     db_conn: DbConnection,
-// }
-
-// impl PostgresExchangeStorage {
-//     pub fn new(db_conn: DbConnection) -> Self {
-//         PostgresExchangeStorage { db_conn }
-//     }
-// }
-
-// #[async_trait]
-// impl ExchangeStore for PostgresExchangeStorage {
-//     async fn save_list_exchanges(&self, list_exchange: Vec<Exchange>) -> anyhow::Result<()> {
-//         let insert_items = list_exchange
-//             .iter()
-//             .map(|item| {
-//                 let exchange_item = exchange::ActiveModel {
-//                     id: Set(item.id.clone()),
-//                     name: Set(item.name.clone()),
-//                 };
-//                 exchange_item
-//             })
-//             .collect::<Vec<exchange::ActiveModel>>();
-
-//         let db = self.db_conn.get_raw_connection();
-//         let _ = exchange::Entity::insert_many(insert_items)
-//             .exec(db.as_ref())
-//             .await?;
-//         Ok(())
-//     }
-// }
 
 #[async_trait]
 impl ExchangeStore for Mutation {
@@ -61,6 +29,11 @@ impl ExchangeStore for Mutation {
 
         let db = db_conn.get_raw_connection();
         let _ = exchange::Entity::insert_many(insert_items)
+            .on_conflict(
+                sea_query::OnConflict::column(exchange::Column::Id)
+                    .update_column(exchange::Column::Name)
+                    .to_owned(),
+            )
             .exec(db.as_ref())
             .await?;
         Ok(())
