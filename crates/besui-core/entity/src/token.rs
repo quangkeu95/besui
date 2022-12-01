@@ -9,6 +9,12 @@ pub struct Model {
     pub id: String,
     pub symbol: String,
     pub name: String,
+    pub updated_at: DateTime,
+    pub exchanges: Option<String>,
+    pub image: Option<String>,
+    pub circulating_supply: Option<i64>,
+    pub total_supply: Option<i64>,
+    pub max_supply: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

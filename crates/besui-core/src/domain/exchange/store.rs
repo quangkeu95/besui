@@ -1,4 +1,4 @@
-use crate::database::DbConnection;
+use crate::persistence::SharedConnection;
 
 use super::Exchange;
 use async_trait::async_trait;
@@ -9,7 +9,7 @@ pub trait ExchangeStore {
     /** Save list exchanges, ignore if exchange item is existed. */
     async fn save_list_exchanges(
         &self,
-        db_conn: DbConnection,
+        db_conn: SharedConnection,
         list_exchanges: Vec<Exchange>,
     ) -> anyhow::Result<()>;
 }

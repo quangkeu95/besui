@@ -1,0 +1,3 @@
+[database.logging]
+level = "info"
+enabled = true

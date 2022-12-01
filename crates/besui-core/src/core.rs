@@ -1,9 +1,8 @@
-use crate::application::monitor::MonitorResolver;
-use crate::database::{DbConnection, DbConnectionManager};
+use crate::persistence::postgres::PostgresPersistence;
+use crate::persistence::Persistence;
 use crate::resolver::RootResolver;
-use crate::services::ServiceRegister;
 use anyhow::Context;
-use besui_config::config::AppConfig;
+use besui_config::AppConfig;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::DatabaseConnection;
 use std::str::FromStr;
@@ -11,14 +10,10 @@ use std::sync::Arc;
 use tracing::info;
 use tracing::log::LevelFilter;
 
-pub struct BesuiCore {
-    pub db_conn: DbConnection,
-    pub service_register: ServiceRegister,
-    pub monitor_resolver: Arc<MonitorResolver>,
-}
+pub struct BesuiCore {}
 
 impl BesuiCore {
-    pub async fn new(config: Arc<AppConfig>) -> anyhow::Result<Self> {
+    pub async fn new(config: &AppConfig) -> anyhow::Result<Self> {
         let db_log_enabled = config.database.logging.enabled;
         let db_log_level = LevelFilter::from_str(config.database.logging.level.clone().as_str())?;
 
@@ -27,36 +22,31 @@ impl BesuiCore {
             db_log_enabled, db_log_level
         );
 
-        let db_conn = DbConnectionManager::new_connection(
-            config.database.url.clone(),
-            db_log_enabled,
-            db_log_level,
-        )
-        .await
-        .context("could not initialize db connection")?;
-
-        DbConnectionManager::run_migration(&db_conn)
+        let postgresPersistence =
+            PostgresPersistence::new(config.database.url.clone(), db_log_enabled, db_log_level);
+        let connection_pool = postgresPersistence
+            .new_connection_pool()
             .await
-            .context("error running migration")?;
+            .context("Error create persistence connection pool")?;
+
+        postgresPersistence
+            .run_migration(connection_pool.clone())
+            .await
+            .context("Error running migration")?;
+
         info!("Running migration completed!");
 
         RootResolver::init(|| RootResolver {
-            db_conn: db_conn.clone(),
-            config: config.clone(),
+            persistence: Arc::new(postgresPersistence),
+            connection_pool: connection_pool.clone(),
         })?;
 
-        let service_register = ServiceRegister::new();
-        let monitor_resolver = Arc::new(MonitorResolver::new());
-        Ok(BesuiCore {
-            db_conn,
-            service_register,
-            monitor_resolver,
-        })
+        Ok(BesuiCore {})
     }
 
     pub async fn start(&mut self) -> anyhow::Result<()> {
-        let monitor_resolver = self.monitor_resolver.clone();
-        tokio::spawn(async move { monitor_resolver.start().await });
+        // let monitor_resolver = self.monitor_resolver.clone();
+        // tokio::spawn(async move { monitor_resolver.start().await });
         Ok(())
     }
 }

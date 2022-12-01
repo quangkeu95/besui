@@ -1,5 +1,8 @@
-use crate::{database::DbConnection, errors::Error};
-use besui_config::config::AppConfig;
+use crate::{
+    errors::Error,
+    persistence::{SharedConnection, SharedPersistence},
+};
+use besui_config::AppConfig;
 use once_cell::sync::OnceCell;
 use std::sync::Arc;
 
@@ -12,10 +15,10 @@ static DEFAULT_ROOT_RESOLVER: OnceCell<RootResolver> = OnceCell::new();
  *
  *
  */
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct RootResolver {
-    pub db_conn: DbConnection,
-    pub config: Arc<AppConfig>,
+    pub persistence: SharedPersistence,
+    pub connection_pool: SharedConnection,
 }
 
 impl RootResolver {
@@ -41,29 +44,28 @@ impl RootResolver {
 
 #[cfg(test)]
 mod root_resolver_test {
-    use besui_config::config::get_global_config;
+    use crate::persistence::MockPersistence;
     use claims::{assert_err, assert_err_eq, assert_ok};
     use sea_orm::{DatabaseBackend, MockDatabase};
-
-    use crate::database::DbConnection;
+    use std::sync::Arc;
 
     use super::*;
 
     #[test]
     fn test_init_root_resolver() {
+        let persistence = Arc::new(MockPersistence::new());
         let raw_db_conn = MockDatabase::new(DatabaseBackend::Postgres).into_connection();
-        let db_conn = DbConnection::try_from(raw_db_conn).unwrap();
-        let config = get_global_config();
+        let db_conn = Arc::new(raw_db_conn);
 
         let result = RootResolver::init(|| RootResolver {
-            db_conn: db_conn.clone(),
-            config: config.clone(),
+            persistence: persistence.clone(),
+            connection_pool: db_conn.clone(),
         });
         assert_ok!(result);
 
         let err_result = RootResolver::init(|| RootResolver {
-            db_conn: db_conn.clone(),
-            config: config.clone(),
+            persistence: persistence.clone(),
+            connection_pool: db_conn.clone(),
         });
         let err = assert_err!(err_result);
         assert_eq!(
@@ -74,7 +76,8 @@ mod root_resolver_test {
 
     #[test]
     fn test_get_root_resolver() {
-        let err = assert_err!(RootResolver::get());
+        let root_resolver = RootResolver::get();
+        let err = assert_err!(root_resolver);
         assert_eq!(
             err.to_string(),
             Error::ErrorRootResolverNotInitialized.to_string()

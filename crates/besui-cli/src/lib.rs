@@ -1,11 +1,12 @@
-use std::sync::Arc;
-
 use anyhow::{self, Context};
 use besui_api::router::ApiController;
-use besui_config::config::AppConfig;
+use besui_config::AppConfig;
 use besui_core::core::BesuiCore;
-use besui_core::database::DbConnectionManager;
+use std::sync::Arc;
+// use besui_core::database::DbConnectionManager;
 use clap::{Parser, Subcommand};
+
+pub mod telemetry;
 
 #[derive(Debug, Parser)]
 #[clap(
@@ -28,10 +29,10 @@ pub enum Commands {
 }
 
 impl Cli {
-    pub async fn execute(self, config: Arc<AppConfig>) -> anyhow::Result<()> {
+    pub async fn execute(self, config: &AppConfig) -> anyhow::Result<()> {
         match &self.command {
             Commands::Start {} => {
-                let mut core = BesuiCore::new(config.clone()).await?;
+                let mut core = BesuiCore::new(config).await?;
 
                 core.start().await.context("cannot start core")?;
 

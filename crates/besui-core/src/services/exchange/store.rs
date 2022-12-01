@@ -1,19 +1,20 @@
 use crate::{
-    database::DbConnection,
     domain::exchange::{store::ExchangeStore, Exchange},
+    persistence::{
+        postgres::{PostgresConnection, PostgresPersistence},
+        SharedConnection,
+    },
 };
 use ::entity::exchange;
 use async_trait::async_trait;
 use sea_orm::*;
 use tracing::{error, info};
 
-use super::Mutation;
-
 #[async_trait]
-impl ExchangeStore for Mutation {
+impl ExchangeStore for PostgresPersistence {
     async fn save_list_exchanges(
         &self,
-        db_conn: DbConnection,
+        connection_pool: SharedConnection,
         list_exchanges: Vec<Exchange>,
     ) -> anyhow::Result<()> {
         let insert_items = list_exchanges
@@ -27,14 +28,14 @@ impl ExchangeStore for Mutation {
             })
             .collect::<Vec<exchange::ActiveModel>>();
 
-        let db = db_conn.get_raw_connection();
+        let conn = PostgresPersistence::downcast_ref(connection_pool.as_ref())?;
         let _ = exchange::Entity::insert_many(insert_items)
             .on_conflict(
                 sea_query::OnConflict::column(exchange::Column::Id)
                     .update_column(exchange::Column::Name)
                     .to_owned(),
             )
-            .exec(db.as_ref())
+            .exec(conn)
             .await?;
         Ok(())
     }
@@ -45,23 +46,21 @@ mod exchange_store_test {
     use ::entity::exchange;
     use claims::assert_ok;
     use sea_orm::{DatabaseBackend, MockDatabase, MockExecResult};
+    use std::sync::Arc;
 
     use crate::{
-        application::store::Mutation,
-        database::DbConnection,
         domain::exchange::{store::ExchangeStore, Exchange},
+        persistence::{postgres::PostgresPersistence, SharedConnection},
     };
 
-    fn mock_db_connection() -> DbConnection {
+    fn mock_db_connection() -> SharedConnection {
         let raw_db_conn = MockDatabase::new(DatabaseBackend::Postgres)
             .append_exec_results(vec![])
             .into_connection();
-        let db_conn_res = DbConnection::try_from(raw_db_conn);
-        let db_conn = assert_ok!(db_conn_res);
-        db_conn
+        Arc::new(raw_db_conn)
     }
 
-    fn mock_db_conn_with_list_exchange(list_exchange: Vec<Exchange>) -> DbConnection {
+    fn mock_db_conn_with_list_exchange(list_exchange: Vec<Exchange>) -> SharedConnection {
         let query_results = list_exchange
             .into_iter()
             .map(|item| {
@@ -78,9 +77,7 @@ mod exchange_store_test {
                 rows_affected: 1,
             }])
             .into_connection();
-        let db_conn_res = DbConnection::try_from(raw_db_conn);
-        let db_conn = assert_ok!(db_conn_res);
-        db_conn
+        Arc::new(raw_db_conn)
     }
 
     #[tokio::test]
@@ -91,9 +88,9 @@ mod exchange_store_test {
         }];
 
         let db_conn = mock_db_conn_with_list_exchange(list_exchanges.clone());
-        let mutation = Mutation::default();
+        let persistence = PostgresPersistence::default();
 
-        let res = mutation
+        let res = persistence
             .save_list_exchanges(db_conn.clone(), list_exchanges)
             .await;
         assert_ok!(res);

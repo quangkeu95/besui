@@ -17,16 +17,27 @@ impl CoingeckoConverter {
             low_24h: item.low24_h,
         };
 
+        let circulating_supply = Self::f64_to_i64(item.circulating_supply);
+        let total_supply = Self::f64_to_i64(item.total_supply);
+        let max_supply = Self::f64_to_i64(item.max_supply);
+
         Ok(Token {
             id,
             symbol,
             name,
             image: Some(item.image.clone()),
-            last_updated: Utc::now(),
-            circulating_supply: item.circulating_supply,
-            total_supply: item.total_supply,
-            max_supply: item.max_supply,
+            updated_at: Utc::now(),
+            circulating_supply,
+            total_supply,
+            max_supply,
             market_data: Some(token_market_data),
         })
+    }
+
+    fn f64_to_i64(input: Option<f64>) -> Option<i64> {
+        match input {
+            Some(val) => Some(val.round() as i64),
+            None => None,
+        }
     }
 }

@@ -14,6 +14,16 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Token::Id).string().not_null().primary_key())
                     .col(ColumnDef::new(Token::Symbol).string().not_null())
                     .col(ColumnDef::new(Token::Name).string().not_null())
+                    .col(ColumnDef::new(Token::UpdatedAt).date_time().not_null())
+                    .col(ColumnDef::new(Token::Exchanges).string())
+                    .col(ColumnDef::new(Token::Image).string().null())
+                    .col(
+                        ColumnDef::new(Token::CirculatingSupply)
+                            .big_integer()
+                            .default(0),
+                    )
+                    .col(ColumnDef::new(Token::TotalSupply).big_integer().default(0))
+                    .col(ColumnDef::new(Token::MaxSupply).big_integer().default(0))
                     .to_owned(),
             )
             .await
@@ -33,4 +43,10 @@ enum Token {
     Id,
     Symbol,
     Name,
+    UpdatedAt,
+    Exchanges,
+    Image,
+    CirculatingSupply,
+    TotalSupply,
+    MaxSupply,
 }

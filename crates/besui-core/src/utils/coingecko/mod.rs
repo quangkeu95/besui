@@ -6,6 +6,7 @@ use crate::domain::{exchange::Exchange, token::Token};
 use self::{converter::CoingeckoConverter, filter::CoinsMarketsFilter};
 
 pub mod converter;
+pub(self) mod dto;
 pub mod filter;
 pub struct CoingeckoClient {
     client: CoinGeckoClient,
@@ -20,7 +21,7 @@ impl Default for CoingeckoClient {
 }
 
 impl CoingeckoClient {
-    pub async fn get_all_token_ids(&self) -> anyhow::Result<Vec<String>> {
+    pub async fn get_all_token_ids(&self) -> anyhow::Result<Vec<dto::TokenId>> {
         let coins = self
             .client
             .coins_list(false)
@@ -28,8 +29,12 @@ impl CoingeckoClient {
             .context("error call api /coins/list from coingecko")?;
         let coin_ids = coins
             .into_iter()
-            .map(|coin| coin.id)
-            .collect::<Vec<String>>();
+            .map(|coin| dto::TokenId {
+                id: coin.id,
+                symbol: coin.symbol,
+                name: coin.name,
+            })
+            .collect::<Vec<dto::TokenId>>();
         Ok(coin_ids)
     }
 

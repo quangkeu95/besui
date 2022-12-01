@@ -1,0 +1,5 @@
+log_level = "info"
+
+[http_server]
+port = 8080
+log_level = "debug"

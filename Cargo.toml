@@ -13,31 +13,31 @@ members = [".",
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-async-trait = "0.1.57"
-# sui-sdk = { git = "https://github.com/MystenLabs/sui", branch = "devnet" }
-tracing = "0.1.36"
-tracing-subscriber = "0.3.15"
-anyhow = "1.0.61"
-derive_builder = "0.11.2"
-config = "0.13.2"
-serde = "1.0.144"
-thiserror = "1.0.32"
-lazy_static = "1.4.0"
-getset = "0.1.2"
-clap = { version = "4.0.11", features = ["derive"] }
-rust_decimal = "1.26.1"
-ethers = { version = "0.17.0", features = ["ws", "rustls"] }
-futures = "0.3.24"
-axum = "0.5.16"
-num_enum = "0.5.7"
-test-log = "0.2.11"
-coingecko = "1.0.1"
-prettytable-rs = "^0.9"
-dotenvy = "0.15.6"
+# [dependencies]
+# async-trait = "0.1.57"
+# # sui-sdk = { git = "https://github.com/MystenLabs/sui", branch = "devnet" }
+# tracing = "0.1.36"
+# tracing-subscriber = "0.3.15"
+# anyhow = "1.0.61"
+# derive_builder = "0.11.2"
+# config = "0.13.2"
+# serde = "1.0.144"
+# thiserror = "1.0.32"
+# lazy_static = "1.4.0"
+# getset = "0.1.2"
+# clap = { version = "4.0.11", features = ["derive"] }
+# rust_decimal = "1.26.1"
+# ethers = { version = "1.0.2", features = ["ws", "rustls"] }
+# futures = "0.3.24"
+# axum = "0.6.1"
+# num_enum = "0.5.7"
+# test-log = "0.2.11"
+# coingecko = "1.0.1"
+# prettytable-rs = "^0.9"
+# dotenvy = "0.15.6"
 
-[dev-dependencies]
-env_logger = "*"
+# [dev-dependencies]
+# env_logger = "*"
 # sui = {path="../sui/crates/sui"}
 # sui-config = {path="../sui/crates/sui-config"}
 # sui-sdk = { path = "../sui/crates/sui-sdk"}

@@ -95,15 +95,15 @@ pub struct Token {
     pub id: TokenId,
     pub symbol: TokenSymbol,
     pub name: TokenName,
-    pub last_updated: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     #[getset(set)]
     pub image: Option<String>,
     #[getset(set)]
-    pub circulating_supply: Option<f64>,
+    pub circulating_supply: Option<i64>,
     #[getset(set)]
-    pub total_supply: Option<f64>,
+    pub total_supply: Option<i64>,
     #[getset(set)]
-    pub max_supply: Option<f64>,
+    pub max_supply: Option<i64>,
     #[getset(set)]
     pub market_data: Option<TokenMarketData>,
 }
@@ -114,7 +114,7 @@ impl Token {
             id: TokenId::try_from(id)?,
             symbol: TokenSymbol::try_from(symbol)?,
             name: TokenName::try_from(name)?,
-            last_updated: Utc::now(),
+            updated_at: Utc::now(),
             image: None,
             circulating_supply: None,
             total_supply: None,
@@ -122,6 +122,18 @@ impl Token {
             market_data: None,
         })
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct TokenWithPair {
+    pub id: TokenId,
+    pub pair: Vec<Pair>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Pair {
+    pub base: TokenId,
+    pub quote: TokenId,
 }
 
 #[cfg(test)]

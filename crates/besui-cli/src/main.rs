@@ -1,29 +1,36 @@
 use anyhow;
-use besui_cli::Cli;
-use besui_config::config::AppConfig;
-use besui_core::database::DbConnectionManager;
+use besui_cli::{telemetry, Cli};
+use besui_config::APP_CONFIG_INSTANCE;
 use clap::Parser;
 use dotenvy::dotenv;
+use std::str::FromStr;
 use std::sync::Arc;
 use tokio;
-use tracing::info;
+use tracing::{info, log::LevelFilter};
 use tracing_subscriber::{self, prelude::*};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
 
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::from_default_env())
-        .with(tracing_subscriber::fmt::layer())
-        .init();
+    let config = &APP_CONFIG_INSTANCE;
+    let crate_log_level =
+        LevelFilter::from_str(config.log_level.as_str()).unwrap_or_else(|_| LevelFilter::Info);
+    let http_log_level = LevelFilter::from_str(config.http_server.log_level.as_str())
+        .unwrap_or_else(|_| LevelFilter::Off);
 
-    let config = Arc::new(AppConfig::parse().unwrap());
+    let tracing_options = telemetry::TracingOptionsBuilder::default()
+        .crate_level(crate_log_level)
+        .tower_http_level(http_log_level)
+        .build()?;
+
+    // initialize tracing
+    telemetry::init_tracing("besui".into(), tracing_options);
 
     info!("Starting besui...");
     let cli = Cli::parse();
 
-    cli.execute(config).await?;
+    cli.execute(&config).await?;
 
     Ok(())
 }
