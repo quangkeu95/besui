@@ -2,8 +2,18 @@ use anyhow::{anyhow, bail, Context};
 use config::{Config, File};
 use once_cell::sync::Lazy;
 use serde::Deserialize;
-use std::{env, sync::Arc};
+use std::{
+    collections::HashMap,
+    env,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use tracing::{error, info};
+
+use crate::{
+    chains::{read_chain_config_from_file, ChainConfig},
+    read_custom_rpc_from_file, ChainId,
+};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct HttpServer {
@@ -28,6 +38,8 @@ pub struct AppConfig {
     pub log_level: String,
     pub http_server: HttpServer,
     pub database: DatabaseConfig,
+    #[serde(skip_deserializing)]
+    pub chains_config: HashMap<ChainId, ChainConfig>,
 }
 
 impl AppConfig {
@@ -58,12 +70,40 @@ impl AppConfig {
             )
             .build()?;
 
-        match s.try_deserialize::<AppConfig>() {
-            Ok(setting) => Ok(setting),
+        let mut app_config = match s.try_deserialize::<AppConfig>() {
+            Ok(setting) => setting,
             Err(e) => bail!("Error parsing configuration: {:?}", e),
-        }
+        };
+
+        app_config.chains_config = parse_chain_config(&configuration_dir)?;
+
+        Ok(app_config)
         // .context("Error parsing configuration")
     }
+}
+
+fn parse_chain_config(
+    configuration_dir: &PathBuf,
+) -> anyhow::Result<HashMap<ChainId, ChainConfig>> {
+    let chains_config = read_chain_config_from_file(configuration_dir.join("chains.json"))?;
+    let custom_rpc = read_custom_rpc_from_file(configuration_dir.join("custom_rpc.json"))?;
+
+    let result = chains_config
+        .into_iter()
+        .map(|mut item| {
+            let key = item.chain_id.clone();
+            if let Some(custom_rpc_url) = custom_rpc.get(&key) {
+                item.rpc = item
+                    .rpc
+                    .into_iter()
+                    .chain(custom_rpc_url.into_iter().map(|item| item.clone()))
+                    .collect();
+            }
+
+            (key, item)
+        })
+        .collect::<HashMap<ChainId, ChainConfig>>();
+    Ok(result)
 }
 
 pub static APP_CONFIG_INSTANCE: Lazy<AppConfig> = Lazy::new(|| {

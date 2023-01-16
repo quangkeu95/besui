@@ -1,15 +1,13 @@
-[package]
-name = "besui"
-version = "0.1.0"
-edition = "2021"
-
 [workspace]
-members = [".", 
-          "crates/besui-api", 
+resolver = "2"
+members = [ "crates/besui-api", 
           "crates/besui-types", 
           "crates/besui-core", 
           "crates/besui-config",
-          "crates/besui-cli", "crates/besui-core/entity", "crates/besui-core/migration"]
+          "crates/besui-utils",
+          "crates/besui-cli", 
+          "crates/besui-core/entity", 
+          "crates/besui-core/migration"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

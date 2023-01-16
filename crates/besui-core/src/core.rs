@@ -10,6 +10,10 @@ use std::sync::Arc;
 use tracing::info;
 use tracing::log::LevelFilter;
 
+mod chain;
+
+pub use chain::*;
+
 pub struct BesuiCore {}
 
 impl BesuiCore {

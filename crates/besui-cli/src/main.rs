@@ -27,10 +27,8 @@ async fn main() -> anyhow::Result<()> {
     // initialize tracing
     telemetry::init_tracing("besui".into(), tracing_options);
 
-    info!("Starting besui...");
-    let cli = Cli::parse();
-
-    cli.execute(&config).await?;
+    // info!("Starting besui...");
+    let _ = Cli::parse();
 
     Ok(())
 }
